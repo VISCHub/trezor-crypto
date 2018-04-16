@@ -1,6 +1,5 @@
 /**
- * Copyright (c) 2013-2014 Tomas Dzetkulic
- * Copyright (c) 2013-2014 Pavol Rusnak
+ * Copyright (c) 2017 Saleem Rashid
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -21,16 +20,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __RAND_H__
-#define __RAND_H__
+#ifndef __HASHER_H__
+#define __HASHER_H__
 
+#include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 
-uint32_t random32(void);
-void random_buffer(uint8_t *buf, size_t len);
+#include "sha2.h"
+#include "blake256.h"
 
-uint32_t random_uniform(uint32_t n);
-void random_permute(char *buf, size_t len);
+#define HASHER_DIGEST_LENGTH 32
+
+typedef enum {
+    HASHER_SHA2,
+    HASHER_BLAKE,
+
+    HASHER_SHA2D,
+    HASHER_BLAKED,
+} HasherType;
+
+typedef struct {
+    HasherType type;
+
+    union {
+        SHA256_CTX sha2;
+        BLAKE256_CTX blake;
+    } ctx;
+} Hasher;
+
+void hasher_Init(Hasher *hasher, HasherType type);
+void hasher_Reset(Hasher *hasher);
+void hasher_Update(Hasher *hasher, const uint8_t *data, size_t length);
+void hasher_Final(Hasher *hasher, uint8_t hash[HASHER_DIGEST_LENGTH]);
+
+void hasher_Raw(HasherType type, const uint8_t *data, size_t length, uint8_t hash[HASHER_DIGEST_LENGTH]);
 
 #endif
